@@ -43,9 +43,10 @@ def create():
 @app.route("/update/<int:todo_id>", methods=["POST"])
 def update(todo_id):
     title = request.form.get("title", "").strip()
+    due_date = request.form.get("due_date", "").strip() or None
     if title:
         with get_db() as conn:
-            conn.execute("UPDATE todos SET title = ? WHERE id = ?", (title, todo_id))
+            conn.execute("UPDATE todos SET title = ?, due_date = ? WHERE id = ?", (title, due_date, todo_id))
     return redirect(url_for("index"))
 
 
