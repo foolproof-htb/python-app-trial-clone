@@ -40,6 +40,11 @@
     .delete-form button:hover { color: #c00; }
 
     .empty { text-align: center; color: #999; margin-top: 40px; }
+
+    /* 一括削除 */
+    .bulk-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+    .btn-delete-done { padding: 8px 16px; background: #e05; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-delete-done:hover { background: #c00; }
   </style>
 </head>
 <body>
@@ -51,6 +56,15 @@
       <input type="text" name="title" placeholder="新しいタスクを入力..." required autofocus>
       <button type="submit">追加</button>
     </form>
+
+    <!-- 一括削除 -->
+    {% if done_count > 0 %}
+    <div class="bulk-actions">
+      <form action="/delete_done" method="post">
+        <button type="submit" class="btn-delete-done">完了済みを一括削除（{{ done_count }}件）</button>
+      </form>
+    </div>
+    {% endif %}
 
     <!-- 一覧 -->
     {% if todos %}

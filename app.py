@@ -26,7 +26,8 @@ def init_db():
 def index():
     with get_db() as conn:
         todos = conn.execute("SELECT * FROM todos ORDER BY id DESC").fetchall()
-    return render_template("index.html", todos=todos)
+        done_count = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1").fetchone()[0]
+    return render_template("index.html", todos=todos, done_count=done_count)
 
 
 @app.route("/create", methods=["POST"])
@@ -60,6 +61,13 @@ def toggle(todo_id):
 def delete(todo_id):
     with get_db() as conn:
         conn.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+    return redirect(url_for("index"))
+
+
+@app.route("/delete_done", methods=["POST"])
+def delete_done():
+    with get_db() as conn:
+        conn.execute("DELETE FROM todos WHERE done = 1")
     return redirect(url_for("index"))
 
 
