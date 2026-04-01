@@ -11,15 +11,30 @@
     h1 { text-align: center; margin-bottom: 24px; color: #333; }
 
     /* 追加フォーム */
-    .add-form { display: flex; gap: 8px; margin-bottom: 24px; }
-    .add-form input { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+    .add-form { display: flex; gap: 8px; margin-bottom: 16px; }
+    .add-form input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+    .add-form select { padding: 10px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: #fff; }
     .add-form button { padding: 10px 20px; background: #4a90e2; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
     .add-form button:hover { background: #357abd; }
 
+    /* ソートバー */
+    .sort-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; color: #666; }
+    .sort-bar a { text-decoration: none; padding: 4px 10px; border-radius: 4px; border: 1px solid #ccc; color: #555; background: #fff; }
+    .sort-bar a.active { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+
     /* ToDoリスト */
     .todo-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .todo-item { background: #fff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; }
+    .todo-item { background: #fff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; border-left: 5px solid #ccc; }
     .todo-item.done { opacity: 0.5; }
+    .todo-item.priority-high { border-left-color: #e05252; }
+    .todo-item.priority-medium { border-left-color: #e0b252; }
+    .todo-item.priority-low { border-left-color: #52b452; }
+
+    /* 優先度バッジ */
+    .priority-badge { font-size: 11px; font-weight: bold; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
+    .badge-high { background: #fde8e8; color: #c0392b; }
+    .badge-medium { background: #fef6e0; color: #b07d00; }
+    .badge-low { background: #e8f8e8; color: #27833a; }
 
     /* 完了トグル */
     .toggle-form button { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #4a90e2; background: transparent; cursor: pointer; flex-shrink: 0; }
@@ -29,8 +44,10 @@
     .title-area { flex: 1; }
     .title-text { font-size: 15px; color: #333; cursor: pointer; }
     .todo-item.done .title-text { text-decoration: line-through; color: #999; }
-    .edit-form { display: none; gap: 6px; }
-    .edit-form input { flex: 1; padding: 6px 10px; border: 1px solid #aaa; border-radius: 4px; font-size: 14px; }
+    .edit-form { display: none; flex-direction: column; gap: 6px; }
+    .edit-form-row { display: flex; gap: 6px; align-items: center; }
+    .edit-form input[type="text"] { flex: 1; padding: 6px 10px; border: 1px solid #aaa; border-radius: 4px; font-size: 14px; }
+    .edit-form select { padding: 6px 8px; border: 1px solid #aaa; border-radius: 4px; font-size: 13px; background: #fff; }
     .edit-form button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
     .btn-save { background: #4a90e2; color: #fff; }
     .btn-cancel { background: #ccc; color: #333; }
@@ -49,27 +66,57 @@
     <!-- 追加 -->
     <form class="add-form" action="/create" method="post">
       <input type="text" name="title" placeholder="新しいタスクを入力..." required autofocus>
+      <select name="priority">
+        <option value="high">🔴 高</option>
+        <option value="medium" selected>🟡 中</option>
+        <option value="low">🟢 低</option>
+      </select>
       <button type="submit">追加</button>
     </form>
+
+    <!-- ソート -->
+    <div class="sort-bar">
+      <span>並び替え:</span>
+      <a href="/?sort=id" class="{{ 'active' if sort == 'id' else '' }}">新着順</a>
+      <a href="/?sort=priority" class="{{ 'active' if sort == 'priority' else '' }}">優先度順</a>
+    </div>
 
     <!-- 一覧 -->
     {% if todos %}
     <ul class="todo-list">
       {% for todo in todos %}
-      <li class="todo-item {% if todo.done %}done{% endif %}">
+      <li class="todo-item {% if todo.done %}done{% endif %} priority-{{ todo.priority }}">
 
         <!-- 完了トグル -->
         <form class="toggle-form" action="/toggle/{{ todo.id }}" method="post">
           <button type="submit" title="完了/未完了"></button>
         </form>
 
+        <!-- 優先度バッジ -->
+        {% if todo.priority == 'high' %}
+          <span class="priority-badge badge-high">高</span>
+        {% elif todo.priority == 'medium' %}
+          <span class="priority-badge badge-medium">中</span>
+        {% else %}
+          <span class="priority-badge badge-low">低</span>
+        {% endif %}
+
         <!-- タイトル表示・編集 -->
         <div class="title-area">
           <span class="title-text" onclick="startEdit({{ todo.id }})">{{ todo.title }}</span>
           <form class="edit-form" id="edit-{{ todo.id }}" action="/update/{{ todo.id }}" method="post">
-            <input type="text" name="title" value="{{ todo.title }}">
-            <button type="submit" class="btn-save">保存</button>
-            <button type="button" class="btn-cancel" onclick="cancelEdit({{ todo.id }})">キャンセル</button>
+            <div class="edit-form-row">
+              <input type="text" name="title" value="{{ todo.title }}">
+              <select name="priority">
+                <option value="high" {% if todo.priority == 'high' %}selected{% endif %}>🔴 高</option>
+                <option value="medium" {% if todo.priority == 'medium' %}selected{% endif %}>🟡 中</option>
+                <option value="low" {% if todo.priority == 'low' %}selected{% endif %}>🟢 低</option>
+              </select>
+            </div>
+            <div class="edit-form-row">
+              <button type="submit" class="btn-save">保存</button>
+              <button type="button" class="btn-cancel" onclick="cancelEdit({{ todo.id }})">キャンセル</button>
+            </div>
           </form>
         </div>
 
