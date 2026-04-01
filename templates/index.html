@@ -11,10 +11,12 @@
     h1 { text-align: center; margin-bottom: 24px; color: #333; }
 
     /* 追加フォーム */
-    .add-form { display: flex; gap: 8px; margin-bottom: 24px; }
-    .add-form input { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+    .add-form { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .add-form input[name="title"] { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; min-width: 160px; }
+    .add-form input[name="due_date"] { padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
     .add-form button { padding: 10px 20px; background: #4a90e2; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
     .add-form button:hover { background: #357abd; }
+    .due-date { font-size: 12px; color: #888; margin-top: 2px; }
 
     /* ToDoリスト */
     .todo-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -49,6 +51,7 @@
     <!-- 追加 -->
     <form class="add-form" action="/create" method="post">
       <input type="text" name="title" placeholder="新しいタスクを入力..." required autofocus>
+      <input type="date" name="due_date">
       <button type="submit">追加</button>
     </form>
 
@@ -66,8 +69,12 @@
         <!-- タイトル表示・編集 -->
         <div class="title-area">
           <span class="title-text" onclick="startEdit({{ todo.id }})">{{ todo.title }}</span>
+          {% if todo.due_date %}
+          <div class="due-date">期日: {{ todo.due_date }}</div>
+          {% endif %}
           <form class="edit-form" id="edit-{{ todo.id }}" action="/update/{{ todo.id }}" method="post">
             <input type="text" name="title" value="{{ todo.title }}">
+            <input type="date" name="due_date" value="{{ todo.due_date or '' }}">
             <button type="submit" class="btn-save">保存</button>
             <button type="button" class="btn-cancel" onclick="cancelEdit({{ todo.id }})">キャンセル</button>
           </form>

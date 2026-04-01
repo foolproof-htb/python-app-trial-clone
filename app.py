@@ -17,7 +17,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS todos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
-                done INTEGER NOT NULL DEFAULT 0
+                done INTEGER NOT NULL DEFAULT 0,
+                due_date TEXT
             )
         """)
 
@@ -32,18 +33,20 @@ def index():
 @app.route("/create", methods=["POST"])
 def create():
     title = request.form["title"].strip()
+    due_date = request.form.get("due_date", "").strip() or None
     if title:
         with get_db() as conn:
-            conn.execute("INSERT INTO todos (title) VALUES (?)", (title,))
+            conn.execute("INSERT INTO todos (title, due_date) VALUES (?, ?)", (title, due_date))
     return redirect(url_for("index"))
 
 
 @app.route("/update/<int:todo_id>", methods=["POST"])
 def update(todo_id):
     title = request.form.get("title", "").strip()
+    due_date = request.form.get("due_date", "").strip() or None
     if title:
         with get_db() as conn:
-            conn.execute("UPDATE todos SET title = ? WHERE id = ?", (title, todo_id))
+            conn.execute("UPDATE todos SET title = ?, due_date = ? WHERE id = ?", (title, due_date, todo_id))
     return redirect(url_for("index"))
 
 
